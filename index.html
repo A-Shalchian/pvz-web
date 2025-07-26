@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plants vs Zombies - Web Edition</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="ui-overlay">
+            <div id="sun-counter">
+                <span id="sun-icon">☀️</span>
+                <span id="sun-amount">50</span>
+            </div>
+            <div id="plant-selector">
+                <div class="plant-card" data-plant="sunflower" data-cost="50">
+                    <div class="plant-icon">🌻</div>
+                    <div class="plant-cost">50</div>
+                </div>
+                <div class="plant-card" data-plant="peashooter" data-cost="100">
+                    <div class="plant-icon">🌱</div>
+                    <div class="plant-cost">100</div>
+                </div>
+                <div class="plant-card" data-plant="wallnut" data-cost="50">
+                    <div class="plant-icon">🥜</div>
+                    <div class="plant-cost">50</div>
+                </div>
+                <div class="plant-card" data-plant="cherrybomb" data-cost="150">
+                    <div class="plant-icon">🍒</div>
+                    <div class="plant-cost">150</div>
+                </div>
+            </div>
+        </div>
+        <div id="game-canvas"></div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+    <script src="js/entities/Plant.js"></script>
+    <script src="js/entities/Zombie.js"></script>
+    <script src="js/entities/Projectile.js"></script>
+    <script src="js/entities/Sun.js"></script>
+    <script src="js/scenes/GameScene.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

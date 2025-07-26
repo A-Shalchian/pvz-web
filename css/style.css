@@ -1,0 +1,148 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(to bottom, #87CEEB 0%, #98FB98 50%, #228B22 100%);
+    overflow: hidden;
+    height: 100vh;
+}
+
+#game-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+}
+
+#ui-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+#sun-counter {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px 15px;
+    border-radius: 25px;
+    border: 3px solid #FFD700;
+    font-size: 20px;
+    font-weight: bold;
+    color: #FF8C00;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    pointer-events: auto;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+#plant-selector {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    pointer-events: auto;
+}
+
+.plant-card {
+    width: 70px;
+    height: 90px;
+    background: linear-gradient(145deg, #f0f0f0, #d0d0d0);
+    border: 3px solid #8B4513;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    user-select: none;
+}
+
+.plant-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    background: linear-gradient(145deg, #ffffff, #e0e0e0);
+}
+
+.plant-card.selected {
+    border-color: #FFD700;
+    background: linear-gradient(145deg, #FFFACD, #F0E68C);
+    transform: translateY(-2px);
+}
+
+.plant-card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(50%);
+}
+
+.plant-icon {
+    font-size: 28px;
+    margin-bottom: 5px;
+}
+
+.plant-cost {
+    font-size: 12px;
+    font-weight: bold;
+    color: #8B4513;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+#game-canvas {
+    width: 100%;
+    height: 100%;
+}
+
+/* Game grid visual hints */
+.grid-cell {
+    position: absolute;
+    border: 1px dashed rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    transition: background 0.2s ease;
+}
+
+.grid-cell:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    #plant-selector {
+        top: 10px;
+        left: 10px;
+        transform: none;
+        flex-wrap: wrap;
+        width: calc(100% - 20px);
+    }
+    
+    .plant-card {
+        width: 60px;
+        height: 80px;
+    }
+    
+    .plant-icon {
+        font-size: 24px;
+    }
+    
+    #sun-counter {
+        top: 10px;
+        right: 10px;
+        left: auto;
+        font-size: 18px;
+    }
+}

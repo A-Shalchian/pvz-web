@@ -1,0 +1,40 @@
+{
+  "name": "plants-vs-zombies-web",
+  "version": "1.0.0",
+  "description": "A browser-based Plants vs Zombies tower defense game built with Phaser.js",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve . --listen 3000",
+    "build": "echo 'No build step required - static files only'",
+    "serve": "python -m http.server 8000"
+  },
+  "keywords": [
+    "game",
+    "plants-vs-zombies",
+    "tower-defense",
+    "phaser",
+    "javascript",
+    "html5",
+    "canvas",
+    "web-game"
+  ],
+  "author": "Cascade AI",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "serve": "^14.2.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "local"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}
