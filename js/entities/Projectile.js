@@ -14,12 +14,12 @@ class Projectile {
 
     getSpeed() {
         const speedValues = {
-            pea: 4,
-            frozen_pea: 3.5,
-            fireball: 3,
-            spike: 5
+            pea: 8,
+            frozen_pea: 7,
+            fireball: 6,
+            spike: 10
         };
-        return speedValues[this.type] || 4;
+        return speedValues[this.type] || 8;
     }
 
     getDamage() {
@@ -143,7 +143,7 @@ class Projectile {
         this.updateEffects();
         
         // Check if projectile is off-screen
-        if (this.x > 1250) {
+        if (this.x > this.scene.cameras.main.width + 50) {
             this.shouldDestroy = true;
         }
     }

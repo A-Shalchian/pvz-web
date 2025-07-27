@@ -178,7 +178,11 @@ class Plant {
             zombie.lane === this.gridY && zombie.x > this.x
         );
         
+        // Debug logging
+        console.log(`Peashooter at (${this.x}, ${this.y}) lane ${this.gridY} checking for zombies. Found: ${zombieInLane ? 'YES' : 'NO'}. Total zombies: ${this.scene.zombies.length}`);
+        
         if (zombieInLane) {
+            console.log(`Peashooter shooting! Creating projectile at (${this.x + 30}, ${this.y})`);
             const projectile = new Projectile(this.scene, this.x + 30, this.y, 'pea', this.gridY);
             this.scene.addProjectile(projectile);
             

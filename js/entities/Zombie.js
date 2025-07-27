@@ -30,11 +30,11 @@ class Zombie {
 
     getSpeed() {
         const speedValues = {
-            basic: 0.5,
-            cone: 0.4,
-            bucket: 0.3
+            basic: 1.5,
+            cone: 1.2,
+            bucket: 1.0
         };
-        return speedValues[this.type] || 0.5;
+        return speedValues[this.type] || 1.5;
     }
 
     getDamage() {
@@ -136,7 +136,13 @@ class Zombie {
             }
         } else {
             // Move forward
+            const oldX = this.x;
             this.x -= this.speed;
+            
+            // Debug logging (remove this later)
+            if (Math.random() < 0.01) { // Log occasionally to avoid spam
+                console.log(`Zombie moving from ${oldX} to ${this.x}, speed: ${this.speed}`);
+            }
             
             // Walking animation
             const walkCycle = Math.sin(this.scene.time.now * 0.01) * 2;
