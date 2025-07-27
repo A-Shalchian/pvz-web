@@ -1,8 +1,8 @@
 // Game configuration
 const gameConfig = {
     type: Phaser.AUTO,
-    width: 1200,
-    height: 600,
+    width: window.innerWidth,
+    height: window.innerHeight,
     parent: 'game-canvas',
     backgroundColor: '#228B22',
     physics: {
@@ -12,7 +12,17 @@ const gameConfig = {
             debug: false
         }
     },
-    scene: GameScene
+    scene: GameScene,
+    scale: {
+        mode: Phaser.Scale.RESIZE,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: '100%',
+        height: '100%'
+    },
+    render: {
+        antialias: true,
+        pixelArt: false
+    }
 };
 
 // Global game state
@@ -85,35 +95,38 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Utility functions
 window.gameUtils = {
+    // Get current game scene for grid properties
+    getGameScene: function() {
+        return game.scene.getScene('GameScene');
+    },
+    
     // Convert screen coordinates to grid coordinates
     screenToGrid: function(x, y) {
-        const gridStartX = 200;
-        const gridStartY = 100;
-        const cellWidth = 80;
-        const cellHeight = 100;
+        const scene = this.getGameScene();
+        if (!scene) return { x: -1, y: -1 };
         
-        const gridX = Math.floor((x - gridStartX) / cellWidth);
-        const gridY = Math.floor((y - gridStartY) / cellHeight);
+        const gridX = Math.floor((x - scene.gridStartX) / scene.cellWidth);
+        const gridY = Math.floor((y - scene.gridStartY) / scene.cellHeight);
         
         return { x: gridX, y: gridY };
     },
     
     // Convert grid coordinates to screen coordinates
     gridToScreen: function(gridX, gridY) {
-        const gridStartX = 200;
-        const gridStartY = 100;
-        const cellWidth = 80;
-        const cellHeight = 100;
+        const scene = this.getGameScene();
+        if (!scene) return { x: 0, y: 0 };
         
-        const x = gridStartX + (gridX * cellWidth) + (cellWidth / 2);
-        const y = gridStartY + (gridY * cellHeight) + (cellHeight / 2);
+        const x = scene.gridStartX + (gridX * scene.cellWidth) + (scene.cellWidth / 2);
+        const y = scene.gridStartY + (gridY * scene.cellHeight) + (scene.cellHeight / 2);
         
         return { x: x, y: y };
     },
     
     // Check if grid position is valid
     isValidGridPosition: function(gridX, gridY) {
-        return gridX >= 0 && gridX < 9 && gridY >= 0 && gridY < 5;
+        const scene = this.getGameScene();
+        if (!scene) return false;
+        return gridX >= 0 && gridX < scene.gridCols && gridY >= 0 && gridY < scene.gridRows;
     },
     
     // Add sun to player's collection
