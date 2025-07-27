@@ -30,11 +30,11 @@ class Zombie {
 
     getSpeed() {
         const speedValues = {
-            basic: 1.5,
-            cone: 1.2,
-            bucket: 1.0
+            basic: 0.3,  // Much slower like original PvZ
+            cone: 0.25,  // Cone zombies are slower
+            bucket: 0.2  // Bucket zombies are slowest
         };
-        return speedValues[this.type] || 1.5;
+        return speedValues[this.type] || 0.3;
     }
 
     getDamage() {
