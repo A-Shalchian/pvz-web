@@ -13,10 +13,55 @@ class GameScene extends Phaser.Scene {
     }
 
     preload() {
-        // Create simple colored rectangles as placeholders for sprites
-        this.load.image('grass', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==');
+        // Create grass tile textures programmatically
+        this.createGrassTextures();
         
         // We'll create graphics programmatically instead of loading images
+    }
+
+    createGrassTextures() {
+        // Create grass tile texture
+        const grassGraphics = this.add.graphics();
+        
+        // Base grass color
+        grassGraphics.fillStyle(0x228B22);
+        grassGraphics.fillRect(0, 0, 80, 100);
+        
+        // Add grass texture details
+        grassGraphics.fillStyle(0x32CD32);
+        for (let i = 0; i < 20; i++) {
+            const x = Math.random() * 80;
+            const y = Math.random() * 100;
+            grassGraphics.fillRect(x, y, 2, 8);
+        }
+        
+        // Add some darker grass patches
+        grassGraphics.fillStyle(0x1F5F1F);
+        for (let i = 0; i < 10; i++) {
+            const x = Math.random() * 80;
+            const y = Math.random() * 100;
+            grassGraphics.fillRect(x, y, 3, 3);
+        }
+        
+        // Generate texture from graphics
+        grassGraphics.generateTexture('grassTile', 80, 100);
+        grassGraphics.destroy();
+        
+        // Create darker grass tile for alternating rows
+        const darkGrassGraphics = this.add.graphics();
+        darkGrassGraphics.fillStyle(0x1F5F1F);
+        darkGrassGraphics.fillRect(0, 0, 80, 100);
+        
+        // Add lighter grass details
+        darkGrassGraphics.fillStyle(0x228B22);
+        for (let i = 0; i < 15; i++) {
+            const x = Math.random() * 80;
+            const y = Math.random() * 100;
+            darkGrassGraphics.fillRect(x, y, 2, 6);
+        }
+        
+        darkGrassGraphics.generateTexture('darkGrassTile', 80, 100);
+        darkGrassGraphics.destroy();
     }
 
     create() {
@@ -34,66 +79,145 @@ class GameScene extends Phaser.Scene {
         
         // Set up input
         this.input.on('pointerdown', this.onPointerDown, this);
+        this.input.on('pointermove', this.onPointerMove, this);
         
-        // Start game loops
-        this.time.addEvent({
-            delay: 1000,
-            callback: this.gameLoop,
-            callbackScope: this,
-            loop: true
-        });
+        // Initialize tile highlighting
+        this.highlightedTile = null;
+        this.tileHighlight = null;
+        
+        // Game loop will run in the update method
         
         // Initial sun drop
         this.dropSun();
+        
+        // Add resize handler
+        this.scale.on('resize', this.handleResize, this);
+    }
+    
+    handleResize(gameSize) {
+        const width = gameSize.width;
+        const height = gameSize.height;
+        
+        this.cameras.resize(width, height);
+        
+        // Reinitialize grid with new dimensions
+        this.initializeGrid();
+        this.createBackground();
+    }
+    
+    update() {
+        // Run the game loop every frame for smooth movement
+        this.gameLoop();
     }
 
     initializeGrid() {
-        // 9 columns x 5 rows grid
+        // Calculate grid dimensions based on screen size
+        this.gridRows = 5; // Always 5 rows
+        this.gridCols = Math.max(8, Math.floor(this.cameras.main.width / 80)); // At least 8 columns
+        
+        // Calculate cell dimensions to fill screen
+        this.cellWidth = this.cameras.main.width / this.gridCols;
+        this.cellHeight = this.cameras.main.height / this.gridRows;
+        this.gridStartX = 0;
+        this.gridStartY = 0;
+        
         this.grid = [];
-        for (let x = 0; x < 9; x++) {
+        for (let x = 0; x < this.gridCols; x++) {
             this.grid[x] = [];
-            for (let y = 0; y < 5; y++) {
+            for (let y = 0; y < this.gridRows; y++) {
                 this.grid[x][y] = null; // null means empty, otherwise contains plant reference
             }
         }
     }
 
     createBackground() {
-        // Create lawn background
-        const lawnColor = 0x228B22;
-        this.add.rectangle(600, 300, 1200, 600, lawnColor);
+        // Create sky background that fills the screen
+        this.add.rectangle(this.cameras.main.centerX, this.cameras.main.centerY, this.cameras.main.width, this.cameras.main.height, 0x87CEEB);
         
-        // Draw grid lines for visual reference
-        const graphics = this.add.graphics();
-        graphics.lineStyle(1, 0xffffff, 0.2);
+        // Grid properties are now set in initializeGrid()
         
-        const gridStartX = 200;
-        const gridStartY = 100;
-        const cellWidth = 80;
-        const cellHeight = 100;
+        // Create grass tiles for the lawn
+        this.grassTiles = [];
+        for (let row = 0; row < this.gridRows; row++) {
+            this.grassTiles[row] = [];
+            for (let col = 0; col < this.gridCols; col++) {
+                const x = this.gridStartX + (col * this.cellWidth) + (this.cellWidth / 2);
+                const y = this.gridStartY + (row * this.cellHeight) + (this.cellHeight / 2);
+                
+                // Alternate between grass textures for visual variety
+                const textureKey = (row + col) % 2 === 0 ? 'grassTile' : 'darkGrassTile';
+                const grassTile = this.add.image(x, y, textureKey);
+                grassTile.setOrigin(0.5, 0.5);
+                
+                // Add subtle shadow effect
+                grassTile.setTint(0xE6E6E6);
+                
+                // Store tile reference
+                this.grassTiles[row][col] = grassTile;
+            }
+        }
+        
+        // Create lawn border
+        const borderGraphics = this.add.graphics();
+        borderGraphics.lineStyle(4, 0x8B4513, 1); // Brown border
+        borderGraphics.strokeRect(this.gridStartX - 2, this.gridStartY - 2, this.gridCols * this.cellWidth + 4, this.gridRows * this.cellHeight + 4);
+        
+        // Add subtle grid lines for plant placement guidance
+        const gridGraphics = this.add.graphics();
+        gridGraphics.lineStyle(1, 0x000000, 0.1);
         
         // Vertical lines
-        for (let x = 0; x <= 9; x++) {
-            const lineX = gridStartX + (x * cellWidth);
-            graphics.moveTo(lineX, gridStartY);
-            graphics.lineTo(lineX, gridStartY + (5 * cellHeight));
+        for (let x = 0; x <= this.gridCols; x++) {
+            const lineX = this.gridStartX + (x * this.cellWidth);
+            gridGraphics.moveTo(lineX, this.gridStartY);
+            gridGraphics.lineTo(lineX, this.gridStartY + (this.gridRows * this.cellHeight));
         }
         
         // Horizontal lines
-        for (let y = 0; y <= 5; y++) {
-            const lineY = gridStartY + (y * cellHeight);
-            graphics.moveTo(gridStartX, lineY);
-            graphics.lineTo(gridStartX + (9 * cellWidth), lineY);
+        for (let y = 0; y <= this.gridRows; y++) {
+            const lineY = this.gridStartY + (y * this.cellHeight);
+            gridGraphics.moveTo(this.gridStartX, lineY);
+            gridGraphics.lineTo(this.gridStartX + (this.gridCols * this.cellWidth), lineY);
         }
         
-        graphics.strokePath();
+        gridGraphics.strokePath();
         
-        // Add lane backgrounds
-        for (let y = 0; y < 5; y++) {
-            const laneY = gridStartY + (y * cellHeight) + (cellHeight / 2);
-            const laneColor = y % 2 === 0 ? 0x32CD32 : 0x228B22;
-            this.add.rectangle(600, laneY, 1200, cellHeight, laneColor, 0.3);
-        }
+        // Add decorative elements
+        this.addDecorations();
+    }
+    
+    addDecorations() {
+        // Add some flowers and decorative elements around the lawn
+        const decorations = [
+            { x: 150, y: 150, emoji: '🌸', scale: 0.8 },
+            { x: 170, y: 200, emoji: '🌺', scale: 0.6 },
+            { x: 160, y: 350, emoji: '🌼', scale: 0.7 },
+            { x: 140, y: 450, emoji: '🌻', scale: 0.9 },
+            { x: 950, y: 120, emoji: '🌿', scale: 0.8 },
+            { x: 970, y: 180, emoji: '🍄', scale: 0.6 },
+            { x: 960, y: 380, emoji: '🌱', scale: 0.7 },
+            { x: 940, y: 480, emoji: '🌾', scale: 0.8 }
+        ];
+        
+        decorations.forEach(decoration => {
+            const text = this.add.text(decoration.x, decoration.y, decoration.emoji, {
+                fontSize: '24px'
+            });
+            text.setScale(decoration.scale);
+            text.setOrigin(0.5, 0.5);
+        });
+        
+        // Add house in the background
+        const houseGraphics = this.add.graphics();
+        houseGraphics.fillStyle(0x8B4513); // Brown
+        houseGraphics.fillRect(50, 50, 100, 80);
+        houseGraphics.fillStyle(0xFF0000); // Red roof
+        houseGraphics.fillTriangle(50, 50, 150, 50, 100, 20);
+        houseGraphics.fillStyle(0x654321); // Door
+        houseGraphics.fillRect(90, 100, 20, 30);
+        houseGraphics.fillStyle(0x87CEEB); // Window
+        houseGraphics.fillRect(70, 70, 15, 15);
+        houseGraphics.fillRect(115, 70, 15, 15);
     }
 
     onPointerDown(pointer) {
@@ -103,6 +227,107 @@ class GameScene extends Phaser.Scene {
         
         if (window.gameUtils.isValidGridPosition(gridPos.x, gridPos.y)) {
             this.placePlant(gridPos.x, gridPos.y, window.gameState.selectedPlant);
+        }
+    }
+    
+    onPointerMove(pointer) {
+        if (!window.gameState.selectedPlant) {
+            this.clearTileHighlight();
+            return;
+        }
+        
+        const gridPos = window.gameUtils.screenToGrid(pointer.x, pointer.y);
+        
+        if (window.gameUtils.isValidGridPosition(gridPos.x, gridPos.y)) {
+            this.highlightTile(gridPos.x, gridPos.y);
+        } else {
+            this.clearTileHighlight();
+        }
+    }
+    
+    highlightTile(gridX, gridY) {
+        // Clear previous highlight
+        this.clearTileHighlight();
+        
+        // Don't highlight if tile is occupied
+        if (this.grid[gridX][gridY] !== null) return;
+        
+        const screenPos = window.gameUtils.gridToScreen(gridX, gridY);
+        
+        // Create highlight effect
+        this.tileHighlight = this.add.graphics();
+        this.tileHighlight.lineStyle(3, 0x00FF00, 0.8);
+        this.tileHighlight.fillStyle(0x00FF00, 0.2);
+        this.tileHighlight.fillRect(screenPos.x - 40, screenPos.y - 50, 80, 100);
+        this.tileHighlight.strokeRect(screenPos.x - 40, screenPos.y - 50, 80, 100);
+        
+        // Add pulsing effect
+        this.tweens.add({
+            targets: this.tileHighlight,
+            alpha: 0.5,
+            duration: 500,
+            yoyo: true,
+            repeat: -1
+        });
+        
+        this.highlightedTile = { x: gridX, y: gridY };
+    }
+    
+    clearTileHighlight() {
+        if (this.tileHighlight) {
+            this.tileHighlight.destroy();
+            this.tileHighlight = null;
+        }
+        this.highlightedTile = null;
+    }
+    
+    addPlantingEffect(gridX, gridY) {
+        // Darken the grass tile to show it's been planted
+        if (this.grassTiles[gridY] && this.grassTiles[gridY][gridX]) {
+            const grassTile = this.grassTiles[gridY][gridX];
+            grassTile.setTint(0xCCCCCC); // Slightly darker
+            
+            // Add a subtle glow effect
+            const screenPos = window.gameUtils.gridToScreen(gridX, gridY);
+            const glowEffect = this.add.graphics();
+            glowEffect.fillStyle(0x90EE90, 0.3);
+            glowEffect.fillCircle(screenPos.x, screenPos.y, 45);
+            
+            // Fade out the glow
+            this.tweens.add({
+                targets: glowEffect,
+                alpha: 0,
+                duration: 1000,
+                onComplete: () => {
+                    glowEffect.destroy();
+                }
+            });
+            
+            // Add particle effect
+            this.addPlantingParticles(screenPos.x, screenPos.y);
+        }
+    }
+    
+    addPlantingParticles(x, y) {
+        // Create small dirt particles
+        for (let i = 0; i < 8; i++) {
+            const particle = this.add.graphics();
+            particle.fillStyle(0x8B4513, 0.8); // Brown dirt color
+            particle.fillRect(0, 0, 3, 3);
+            particle.x = x + (Math.random() - 0.5) * 20;
+            particle.y = y + (Math.random() - 0.5) * 20;
+            
+            // Animate particles
+            this.tweens.add({
+                targets: particle,
+                x: particle.x + (Math.random() - 0.5) * 40,
+                y: particle.y + (Math.random() - 0.5) * 40,
+                alpha: 0,
+                duration: 800,
+                onComplete: () => {
+                    particle.destroy();
+                }
+            });
         }
     }
 
@@ -122,25 +347,35 @@ class GameScene extends Phaser.Scene {
         this.plantsGroup.add(plant.sprite);
         this.grid[gridX][gridY] = plant;
         
+        // Add planting effect to grass tile
+        this.addPlantingEffect(gridX, gridY);
+        
         // Deselect plant
         window.gameState.selectedPlant = null;
         document.querySelectorAll('.plant-card').forEach(card => {
             card.classList.remove('selected');
         });
+        
+        // Clear highlight
+        this.clearTileHighlight();
     }
 
     spawnZombie() {
-        const lane = Phaser.Math.Between(0, 4);
-        const screenPos = window.gameUtils.gridToScreen(9, lane);
-        screenPos.x += 100; // Start off-screen
+        const lane = Phaser.Math.Between(0, this.gridRows - 1);
+        const screenPos = window.gameUtils.gridToScreen(this.gridCols - 1, lane);
+        screenPos.x = this.cameras.main.width + 50; // Start off-screen to the right
+        
+        console.log(`Spawning zombie at lane ${lane}, position (${screenPos.x}, ${screenPos.y})`);
         
         const zombie = new Zombie(this, screenPos.x, screenPos.y, 'basic', lane);
         this.zombies.push(zombie);
         this.zombiesGroup.add(zombie.sprite);
+        
+        console.log(`Total zombies: ${this.zombies.length}`);
     }
 
     dropSun() {
-        const x = Phaser.Math.Between(200, 1000);
+        const x = Phaser.Math.Between(50, this.cameras.main.width - 50);
         const y = 50;
         
         const sun = new Sun(this, x, y);
@@ -214,7 +449,7 @@ class GameScene extends Phaser.Scene {
         this.projectiles.forEach((projectile, index) => {
             projectile.update();
             
-            if (projectile.x > 1250 || projectile.shouldDestroy) {
+            if (projectile.x > this.cameras.main.width + 50 || projectile.shouldDestroy) {
                 projectile.destroy();
                 this.projectiles.splice(index, 1);
             }
