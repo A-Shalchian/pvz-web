@@ -65,6 +65,11 @@ class GameScene extends Phaser.Scene {
     }
 
     create() {
+        // Initialize Three.js manager for 3D zombies
+        if (!window.threeManager) {
+            window.threeManager = new ThreeManager();
+        }
+        
         // Initialize grid
         this.initializeGrid();
         
@@ -365,13 +370,18 @@ class GameScene extends Phaser.Scene {
         const screenPos = window.gameUtils.gridToScreen(this.gridCols - 1, lane);
         screenPos.x = this.cameras.main.width + 50; // Start off-screen to the right
         
-        console.log(`Spawning zombie at lane ${lane}, position (${screenPos.x}, ${screenPos.y})`);
+        console.log(`Spawning 3D zombie at lane ${lane}, position (${screenPos.x}, ${screenPos.y})`);
         
-        const zombie = new Zombie(this, screenPos.x, screenPos.y, 'basic', lane);
+        // Randomly choose zombie type
+        const zombieTypes = ['basic', 'cone', 'bucket'];
+        const zombieType = zombieTypes[Phaser.Math.Between(0, zombieTypes.length - 1)];
+        
+        // Create 3D zombie instead of regular zombie
+        const zombie = new Zombie3D(this, screenPos.x, screenPos.y, zombieType, lane);
         this.zombies.push(zombie);
         this.zombiesGroup.add(zombie.sprite);
         
-        console.log(`Total zombies: ${this.zombies.length}`);
+        console.log(`Total 3D zombies: ${this.zombies.length}`);
     }
 
     dropSun() {
